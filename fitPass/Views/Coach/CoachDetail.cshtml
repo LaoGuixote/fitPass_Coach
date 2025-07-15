@@ -1,0 +1,35 @@
+﻿<head>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+</head>
+
+<div>
+    @if (Model.CoachPhoto != null)
+    {
+        <img style="width:250px" src="@Model.CoachPhoto" class="card-img-top" alt="教練照片" />  
+    }
+<br /><br />
+
+<h2>@Model.Name</h2>
+<p>@Model.Specialty</p>
+
+<a href="@Url.Action("ReserveCalendar", "Reservation", new { coachId = @Model.CoachId })">
+    <button>預約一對一教練課</button>
+</a>     
+<br /><br />
+<a href="@Url.Action("CoachSchedule", "Coach", new { id = @Model.CoachId })">
+<button>團課內容</button>
+</a>     
+<br /><br />
+
+<p>@Model.Description</p>
+
+    <div class="contact-row">
+      聯絡資訊
+      <span class="icon-ig" title="Instagram">IG</span>
+      <span class="material-icons" title="電話">call</span>
+    </div>
+
+
+</div>

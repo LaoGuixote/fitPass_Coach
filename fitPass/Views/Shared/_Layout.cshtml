@@ -1,0 +1,255 @@
+﻿@{
+    var memberName = Context.Session.GetString("UserName") ?? "會員";
+    var adminRole = Context.Session.GetInt32("Admin") ?? 1;
+}
+
+<!-- Layout.cshtml for FitPass 手機版 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - FitPass</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet" />
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        body {
+            background-color: #f2f2f2;
+            color: #404040;
+            font-family: 'GenYoGothic2', sans-serif;
+            font-size: 14px;
+        }
+
+        .fitpass-header {
+            background-image: url('/img/header-bg.png');
+            background-size: cover;
+            background-position: center;
+            padding: 20px;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            color: white;
+        }
+
+        .fitpass-logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .page-header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            line-height: 32px;
+        }
+
+        .text-title-xl {
+            font-size: 24px;
+            font-weight: bold;
+            line-height: 32px;
+            color: #404040;
+        }
+
+        .text-title-md {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 24px;
+            color: #404040;
+        }
+
+        .text-info-sm {
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 20px;
+            color: #979797;
+        }
+
+        .btn-green {
+            background-color: #00D856;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+        }
+
+        .btn-orange {
+            background-color: #FF8000;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+        }
+
+        .fitpass-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .fitpass-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            padding: 0 24px;
+        }
+
+        /* 漢堡選單 slide 動畫 */
+        #fitpass-menu-overlay {
+            position: fixed;
+            top: 0;
+            right: 0;
+            transform: translateX(100%); /* 初始在右外側 */
+            width: 100%;
+            height: 100%;
+            background-color: #eeeeee;
+            color: #404040;
+            z-index: 9999;
+            transition: transform 0.3s ease-in-out;
+            overflow-y: auto;
+        }
+
+        .menu-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            vertical-align: middle;
+            filter: brightness(0) saturate(100%) invert(43%) sepia(84%) saturate(942%) hue-rotate(81deg) brightness(97%) contrast(106%);
+        }
+
+
+            #fitpass-menu-overlay.show {
+                transform: translateX(0); /* 顯示時滑入 */
+            }
+
+            #fitpass-menu-overlay a {
+                display: flex;
+                font-weight: bold;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 0;
+                text-decoration: none;
+                color: #404040;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+            }
+
+            #fitpass-menu-overlay .btn-logout {
+            background-color: #FF4E4E;
+                color: #ffffff;
+                font-weight: bold;
+                border: none;
+                width: 100%;
+                padding: 8px 0;
+                border-radius: 4px;
+                text-align: center;
+                display: block;
+            }
+    </style>
+
+</head>
+<body>
+    <!-- Header -->
+    <div class="fitpass-header"> <!-- 第一行 --> 
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="fitpass-logo">FitPass</div>
+        <div class="d-flex align-items-center gap-3"> 
+            <i class="bi bi-person-circle fs-4"></i>
+            <i class="bi bi-list fs-4" onclick="openMenu()"></i>
+        </div> 
+        </div>
+        <!-- 第二行 --> 
+        <div class="page-header-title mt-2">@ViewData["Title"]
+        </div>
+        </div>
+
+
+    <!-- 主體內容 -->
+    <div class="container px-3 pt-3 pb-5">
+        @RenderBody()
+    </div>
+
+    <!-- Slide-in Menu -->
+    <div id="fitpass-menu-overlay">
+        <div class="p-3">
+            <!-- 使用者區（點擊切換會員選單） -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex align-items-center" onclick="openMemberMenu()" style="cursor: pointer;">
+                    <i class="bi bi-person-circle fs-3 me-2"></i>
+                    <strong>@memberName</strong>
+                </div>
+                <i class="bi bi-x-lg fs-3" onclick="closeMenu()" style="cursor: pointer;"></i>
+            </div>
+
+            <!-- 主選單 -->
+            <div id="mainMenu" class="mt-4">
+                @if (adminRole == 2)
+                {
+                    <a href="/Coach/Index"><i class="bi bi-house-door-fill"></i> 教練首頁 <i class="bi bi-chevron-right"></i></a>
+                    <a href="/News"><img src="/img/menu_news.svg" class="menu-icon" /> 最新消息 <i class="bi bi-chevron-right"></i></a>
+                    <a href="/Coach/CoachSchedule"><img src="/img/menu_myclass.svg" class="menu-icon" /> 我的開課 <i class="bi bi-chevron-right"></i></a>
+                    <a href="/Courses"><img src="/img/menu_allclass.svg" class="menu-icon" /> 所有課程 <i class="bi bi-chevron-right"></i></a>
+                    <a href="/QRCode/Show"><img src="/img/menu_scanqrcode.svg" class="menu-icon" /> 入場 QR Code <i class="bi bi-chevron-right"></i></a>
+                    <a href="/Traffic"><img src="/img/menu_people.svg" class="menu-icon" /> 場館人流 <i class="bi bi-chevron-right"></i></a>
+                }
+                else
+                {
+                    <a href="/Member/Index"><img src="/img/menu_home.svg" class="menu-icon" /> 首頁 <i class="bi bi-chevron-right"></i></a>
+                    <a href="/News"><img src="/img/menu_news.svg" class="menu-icon" /> 最新消息 <i class="bi bi-chevron-right"></i></a>
+                    <a href="/MyCourses"><img src="/img/menu_myclass.svg" class="menu-icon" /> 我的課程 <i class="bi bi-chevron-right"></i></a>
+                    <a href="/Courses"><img src="/img/menu_allclass.svg" class="menu-icon" /> 所有課程 <i class="bi bi-chevron-right"></i></a>
+                    <a href="/QRCode/Show"><img src="/img/menu_scanqrcode.svg" class="menu-icon" /> 入場 QR Code <i class="bi bi-chevron-right"></i></a>
+                    <a href="/Traffic"><img src="/img/menu_people.svg" class="menu-icon" /> 場館人流 <i class="bi bi-chevron-right"></i></a>
+                    <a href="/Coach/CoachOverview"><img src="/img/menu_coach.svg" class="menu-icon" /> 教練師資 <i class="bi bi-chevron-right"></i></a>
+                }
+            </div>
+
+            <!-- 會員選單 -->
+            <div id="memberMenu" class="d-none mt-4">
+                <div class="text-end mb-3"><i class="bi bi-chevron-left" onclick="backToMainMenu()"></i></div>
+                <a href="/Member/Edit"><img src="/img/menu_profile.svg" class="menu-icon" /> 我的資料 <i class="bi bi-chevron-right"></i></a>
+                <a href="/Subscription"><img src="/img/menu_suscrible.svg" class="menu-icon" /> 我的訂閱 <i class="bi bi-chevron-right"></i></a>
+                <a href="/Inbody"><img src="/img/menu_inbody.svg" class="menu-icon" /> InBody 分析 <i class="bi bi-chevron-right"></i></a>
+            </div>
+
+            <div class="mt-5 text-center">
+                <form action="/Account/Logout" method="post">
+                    <button type="submit" class="btn btn-logout">登出</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openMenu() {
+            document.getElementById('fitpass-menu-overlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+            backToMainMenu();
+        }
+        function closeMenu() {
+            document.getElementById('fitpass-menu-overlay').classList.remove('show');
+            document.body.style.overflow = '';
+            backToMainMenu();
+
+        }
+        function openMemberMenu() {
+            document.getElementById('mainMenu').classList.add('d-none');
+            document.getElementById('memberMenu').classList.remove('d-none');
+        }
+        function backToMainMenu() {
+            document.getElementById('mainMenu').classList.remove('d-none');
+            document.getElementById('memberMenu').classList.add('d-none');
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

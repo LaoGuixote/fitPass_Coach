@@ -1,0 +1,100 @@
+﻿@{
+    ViewData["Title"] = "排班月曆";
+    var coachId = ViewBag.CoachId; 
+}
+<div id='calendar'></div>
+
+<div id="timeSlotModal" class="modal" tabindex="-1" style="display:none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="submitTimesForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">選擇空閒時段：<span id="selectedDate"></span></h5>
+                </div>
+                <div class="modal-body">
+                    @for (int i = 1; i <= 18; i++)
+                    {
+                        var timeOption = $"timeSlot{i}";
+                        <div>
+                            <input type="checkbox" name="timeSlots" value="@i" id="@timeOption"/>
+                            <label for="@timeOption">@($"{i + 5:00}:00 ~ {i + 6:00}:00")</label>
+                        </div>
+                    }
+                <div>
+                    <button type="button" id="selectAllBtn">全選</button>
+                </div>
+        </div>
+        <div class="modal-footer">
+            <input type="hidden" name="date" id="dateInput" />
+            @* <input type="hidden" name="coachId" value="@coachId" /> *@
+            <button type="submit">送出</button>
+            <button type="button" id="cancelBtn">取消</button>
+        </div>
+        </form>
+    </div>
+</div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        const calendarEl = document.getElementById('calendar');
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'zh-tw',
+            dateClick: function (info) {
+                const selectedDate = info.dateStr;
+                $('#selectedDate').text(selectedDate);
+                $('#dateInput').val(selectedDate);
+
+                // 清空所有 checkbox 勾選
+                $("input[name='timeSlots']").prop('checked', false);
+
+                // 取得當天已排的時段並勾選
+                $.get('/Coach/GetTimeSlots', {
+                    // coachId: @ViewBag.CoachId,
+                    date: selectedDate
+                }, function (data) {
+                    data.forEach(function (slot) {
+                        $(`input[name='timeSlots'][value='${slot}']`).prop("checked", true);
+                    });
+
+                    $('#timeSlotModal').show();
+                });
+            },
+            events: {
+                url: '/Coach/GetScheduleCount',
+                method: 'GET',
+                // extraParams: {
+                //     coachId: @ViewBag.CoachId
+                // },
+                failure: function () {
+                    alert('載入排班資訊失敗！');
+                }
+            }
+        });
+
+        calendar.render();
+
+        //全選
+        $('#selectAllBtn').on('click', function () {
+            $("input[name='timeSlots']").prop('checked', true);
+        });
+
+        //送出
+        $('#submitTimesForm').on('submit', function (e) {
+            e.preventDefault();
+            const formData = $(this).serialize();
+            $.post('/Coach/SubmitSchedule', formData, function (res) {
+                alert('排班成功！');
+                $('#timeSlotModal').hide();
+                location.reload();
+            });
+        });
+
+        //取消按鈕
+        $("#cancelBtn").on("click", function () {
+            $('#timeSlotModal').hide();
+        })
+    });
+</script>

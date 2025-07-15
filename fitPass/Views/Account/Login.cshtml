@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "登入";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FitPass - 登入</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+
+<body style="background-color: #f2f2f2;">
+    <div class="container text-center" style="max-width: 380px; margin: auto; padding-top: 60px;">
+
+        <h1 class="fw-bold text-success mb-4" style="font-size: 38px;">FitPass</h1>
+        <h5 class="mb-3">登入你的帳號</h5>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger">@ViewBag.Error</div>
+        }
+
+        <form method="post">
+            <div class="form-group mb-3 text-start">
+                <input type="email" name="email" class="form-control form-control-lg" placeholder="信箱" required value="c96062@gmail.com" />
+            </div>
+            <div class="form-group mb-3 text-start">
+                <input type="password" name="password" class="form-control form-control-lg" placeholder="密碼" required value="20371246" />
+            </div>
+            <button type="submit" class="btn fitpass-btn-green w-100 btn-lg">登入</button>
+        </form>
+
+        <div class="text-muted mt-3">或是用這些登入</div>
+
+        <div class="d-flex justify-content-center gap-3 mt-2">
+            <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" width="30" />
+            <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/line.svg" width="30" />
+            <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/google.svg" width="30" />
+        </div>
+
+        <p class="mt-4 text-muted">
+            還沒有帳號？
+            <a href="/Account/Register" class="text-success fw-bold">點我創建帳號</a>
+        </p>
+    </div>
+</body>
+<style>
+    .fitpass-btn-green {
+        background-color: #00D856;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        font-weight: bold;
+        border-radius: 6px;
+    }
+</style>
+
+</html>

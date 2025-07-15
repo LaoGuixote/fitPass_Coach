@@ -1,0 +1,19 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+
+<div class="row">
+    @foreach (var coach in Model)
+    {
+        <div class="col-6">
+            <a asp-action="CoachDetail" asp-route-id="@coach.CoachId">
+            <img style="width:100%;max-width:200px;object-fit:cover;border-radius:16px;" src="@(coach.CoachPhoto ?? "/images/default-coach.png")" alt="教練照片" />
+            </a>
+            <h3>@coach.Name</h3>
+            <p>@coach.Specialty</p>
+        </div>
+    }
+</div>

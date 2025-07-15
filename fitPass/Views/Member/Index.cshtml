@@ -1,0 +1,148 @@
+﻿@using fitPass.Models
+@model fitPass.Models.MemberDashboardViewModel
+@{
+    ViewData["Title"] = "會員首頁";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- 額外顯示使用者與人流資訊 -->
+<div class="fitpass-card mb-4">
+    <div class="text-title-md">早安，@Model.Member.Name</div>
+    <div class="text-info-sm" id="peopleNowDisplay">目前場館人流：@Model.PeopleNow / 60</div>
+    <div class="text-info-sm" id="entryStatusDisplay">
+        目前狀態：
+        @if (Model.IsCheckedIn)
+        {
+            <span class="text-success">已入場</span>
+        }
+        else
+        {
+            <span class="text-danger">已退場</span>
+        }
+    </div>
+</div>
+
+
+<h5 class="text-title-md">會員資訊</h5>
+<div class="fitpass-card">
+    <div class="text-title-md">姓名：<span class="text-info-sm">@Model.Member.Name</span></div>
+    <div class="text-title-md">信箱：<span class="text-info-sm">@Model.Member.Email</span></div>
+    <div class="text-title-md">電話：<span class="text-info-sm">@Model.Member.Phone</span></div>
+    <div class="text-title-md">生日：<span class="text-info-sm">@Model.Member.Birthday?.ToString("yyyy-MM-dd")</span></div>
+</div>
+
+<h5 class="text-title-md mt-4">你的近期課程</h5>
+@if (Model.Reservations.Any())
+{
+    <ul class="list-group mb-3">
+        @foreach (var r in Model.Reservations)
+        {
+            <li class="list-group-item text-info-sm">
+                @($"{r.ReservationDate:MM/dd} 第{r.ReservationTime}節 - {r.Course?.Title}")
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p class="text-info-sm">目前尚無預約課程</p>
+}
+
+<h5 class="text-title-md mt-4">最新消息</h5>
+@foreach (var n in Model.NewsList)
+{
+    <div class="border rounded p-2 mb-2 bg-white">
+        <div class="text-title-md">@n.Title</div>
+        <small class="text-info-sm">@n.PublishTime?.ToString("yyyy/MM/dd")</small>
+        <p class="text-info-sm">@n.Content</p>
+    </div>
+}
+
+<!-- 觸發 QRCode Modal -->
+<div class="mt-4 text-center">
+    <button class="btn btn-green w-100" data-bs-toggle="modal" data-bs-target="#qrcodeModal">
+        入場 QRCode
+    </button>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="qrcodeModal" tabindex="-1" aria-labelledby="qrcodeLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center">
+            <div class="modal-header border-0">
+                <h5 class="modal-title w-100 text-title-md">@Model.Member.Name 的入場碼</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-center align-items-center flex-column">
+                    <div id="qrcode"></div>
+                    <p class="text-info-sm mt-3">剩餘時間 <span id="countdown">30</span> 秒</p>
+                    <button class="btn btn-outline-success mt-2" onclick="generateQRCode()">重新整理</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<script>
+    const memberId = '@Context.Session.GetInt32("MemberId")';
+    var qrcode;
+    var countdown = 30;
+    var countdownInterval;
+
+        function generateQRCode() {
+        const timestamp = Date.now();
+        const qrText = btoa(`${memberId}|${timestamp}`);
+
+        if (qrcode) {
+            qrcode.clear();
+        } else {
+            qrcode = new QRCode(document.getElementById("qrcode"), {
+                width: 180,
+                height: 180
+            });
+        }
+        qrcode.makeCode(qrText);
+        resetCountdown();
+
+        // ✅ 自動打卡模擬掃碼成功
+        fetch('/Member/CheckInOut', {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? ''
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById("peopleNowDisplay").innerText = `目前場館人流：${data.peopleNow} / 60`;
+                const statusEl = document.getElementById("entryStatusDisplay");
+                if (data.currentStatus === "已入場") {
+                    statusEl.innerHTML = '目前狀態：<span class="text-success">已入場</span>';
+                } else {
+                    statusEl.innerHTML = '目前狀態：<span class="text-danger">已退場</span>';
+                }
+                console.log("自動打卡完成：" + data.currentStatus);
+            } else {
+                alert("打卡失敗");
+            }
+        });
+    }
+
+
+    function resetCountdown() {
+        countdown = 30;
+        document.getElementById("countdown").innerText = countdown;
+        clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+            countdown--;
+            document.getElementById("countdown").innerText = countdown;
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+            }
+        }, 1000);
+    }
+
+    const modal = document.getElementById("qrcodeModal");
+    modal.addEventListener('shown.bs.modal', generateQRCode);
+</script>
